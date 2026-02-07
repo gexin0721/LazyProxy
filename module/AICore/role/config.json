@@ -1,0 +1,93 @@
+{
+  "deepseek": {
+    "deepseek-chat": {
+      "base_url": "https://api.deepseek.com/v1",
+      "model": "deepseek-chat",
+      "max_tokens": 128000,
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "stop": null,
+      "response_format": { "type": "text" },
+      "tools": null,
+      "tool_choice": null,
+      "logprobs": false,
+      "top_logprobs": null
+    },
+    "deepseek-reasoner": {
+      "base_url": "https://api.deepseek.com",
+      "model": "deepseek-reasoner",
+      "max_tokens": 128000,
+      "temperature": 1.0,
+      "top_p": 1.0,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "stop": null,
+      "response_format": { "type": "text" },
+      "tools": null,
+      "tool_choice": null,
+      "logprobs": false,
+      "top_logprobs": null
+    }
+  },
+  "doubao": {
+    "doubao-seed-1-6-lite-251015": {
+      "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+      "model": "doubao-seed-1-6-lite-251015",
+      "max_tokens": 32000
+    },
+    "doubao-seed-1-6-251015": {
+      "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+      "model": "doubao-1.5-thinking-pro",
+      "max_tokens": 32000
+    }
+  },
+  "kimi": {
+    "moonshot-v1-8k": {
+      "base_url": "https://api.moonshot.cn/v1",
+      "model": "moonshot-v1-8k",
+      "tier": "Free",
+      "max_tokens": 8000
+    }
+  },
+  "qwen": {
+    "qwen-turbo": {
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-turbo",
+      "max_tokens": 8000
+    },
+    "qwen-plus": {
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-plus",
+      "max_tokens": 32000
+    },
+    "qwen-max": {
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-max",
+      "max_tokens": 32000
+    },
+    "qwen-max-longcontext": {
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-max-longcontext",
+      "max_tokens": 128000
+    },
+    "qwen-32k": {
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-32k",
+      "max_tokens": 32000
+    },
+    "qwen-max-preview": {
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "model": "qwen-max-preview",
+      "max_tokens": 128000
+    }
+  },
+  "xinhuo": {
+    "generalv3.5": {
+      "base_url": "wss://spark-api.xf-yun.com/v4.0/chat",
+      "model": "generalv3.5",
+      "max_tokens": 8000
+    }
+  }
+}

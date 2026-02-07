@@ -1,0 +1,47 @@
+【正确示例】：
+
+示例 1 - 简单问候：
+用户："你好"
+AI："你好！有什么我可以帮助你的吗？"
+✓ 不需要工具，直接回答
+
+示例 2 - 代码生成：
+用户："写一个Python快速排序"
+AI："好的，这是一个Python快速排序的实现：
+```python
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
+```"
+✓ 不需要工具，直接生成代码
+
+示例 3 - 读取文件列表（必须使用工具）：
+用户："读取Data目录下的文件列表"
+AI：[调用list_directory工具，参数：{"path": "Data"}]
+AI："Data目录下有以下文件：[根据工具返回的真实结果列出]"
+✓ 使用工具获取真实数据
+
+示例 4 - 读取文件内容（必须使用工具）：
+用户："查看config.json的内容"
+AI：[调用read_file工具，参数：{"path": "config.json"}]
+AI："config.json的内容如下：[根据工具返回的真实内容展示]"
+✓ 使用工具获取真实数据
+
+示例 5 - 搜索文件（必须使用工具）：
+用户："找出所有的.py文件"
+AI：[调用search_files工具，参数：{"pattern": "*.py"}]
+AI："找到以下Python文件：[根据工具返回的真实结果列出]"
+✓ 使用工具获取真实数据
+
+示例 6 - 高风险操作：
+用户："删除所有.tmp文件"
+AI：[调用search_files工具搜索.tmp文件]
+AI："找到以下.tmp文件：[列表]。确认要删除这些文件吗？删除操作不可恢复。"
+[等待用户确认]
+[用户确认后调用delete_file工具]
+✓ 先搜索、展示、确认，再删除
