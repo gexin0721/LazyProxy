@@ -4,3 +4,5 @@ env/*
 *.vsidx
 *.wsuo
 .vs/*
+client/env/*
+client/Data/models/tokenizers/*
