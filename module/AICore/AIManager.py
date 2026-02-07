@@ -5,76 +5,60 @@ AI工厂模块
 
 主要功能：
     - 支持多种AI模型供应商（DeepSeek、Qwen、Kimi、Doubao等）
-    - 双AI协同架构（对话模型 + 知识模型）
+    - 单AI实例架构
     - 统一的模型切换接口
     - 配置文件管理（secret_key.json + config.json）
 
 典型用法：
     >>> factory = AIFactory()
-    >>> factory.connect(
-    ...     dialogue_vendor="deepseek",
-    ...     dialogue_model_name="deepseek-chat",
-    ...     knowledge_vendor="qwen",
-    ...     knowledge_model_name="qwen-turbo"
-    ... )
-    >>> # 使用 factory.dialogue_callback 和 factory.knowledge_callback
+    >>> factory.connect(vendor="deepseek", model_name="deepseek-chat")
+    >>> # 使用 factory.callback
 """
 
 import os
 import json
 from typing import Optional, Dict, Any, Generator
 
-from .Tool.OPEN_AI import OPEN_AI
+from .Client import OPEN_AI
 from .Model import DeepSeek
 from .Model import Doubao
 from .Model import Kimi
 from .Model import Qwen
-from tools import logger
+from logger import logger
 class AIFactory:
     """
-    AI工厂类 - 管理双AI协同系统
+    AI工厂类 - 管理单AI实例
 
-    该类负责创建和管理两个AI客户端：
-    1. 对话模型（dialogue_ai）：负责生成最终的对话回答
-    2. 知识模型（knowledge_ai）：负责查询规划和数据检索
+    该类负责创建和管理一个AI客户端。
 
     属性:
-        dialogue_ai: 对话模型实例（DeepSeek/Qwen/Kimi/Doubao等）
-        knowledge_ai: 知识模型实例
-        dialogue_ai_client: 对话模型的OPEN_AI客户端
-        knowledge_ai_client: 知识模型的OPEN_AI客户端
+        ai: AI模型实例（DeepSeek/Qwen/Kimi/Doubao等）
+        ai_client: AI模型的OPEN_AI客户端
 
     配置文件:
         - role/secret_key.json: 存储各供应商的API密钥
         - role/config.json: 存储各模型的配置参数
-        - role/role_A/: 对话模型的角色目录（包含assistant.json和history.json）
-        - role/role_B/: 知识模型的角色目录
+        - role/role/: 角色目录（包含assistant.json和history.json）
     """
 
     def __init__(self) -> None:
         """
         初始化AI工厂
         """
-        self.dialogue_ai = None  # 对话模型实例
-        self.knowledge_ai = None  # 知识模型实例
-        self.dialogue_ai_client = None  # 对话模型客户端
-        self.knowledge_ai_client = None  # 知识模型客户端
+        self.ai = None  # AI模型实例
+        self.ai_client = None  # AI模型客户端
     
     def connect(
         self,
-        dialogue_vendor: str,
-        dialogue_model_name: str,
-        knowledge_vendor: str,
-        knowledge_model_name: str
+        vendor: str,
+        model_name: str
     ) -> None:
         """
-        连接双AI模型
+        连接AI模型
 
         参数:
-            dialogue_vendor: 对话模型供应商（如 "deepseek", "qwen", "kimi", "doubao"）
-            dialogue_model_name: 对话模型名称（如 "deepseek-chat", "qwen-turbo"）
-            knowledge_vendor: 知识模型供应商
-            knowledge_model_name: 知识模型名称
+            vendor: 模型供应商（如 "deepseek", "qwen", "kimi", "doubao"）
+            model_name: 模型名称（如 "deepseek-chat", "qwen-turbo"）
 
         异常:
             FileNotFoundError: 配置文件不存在
@@ -82,107 +66,58 @@ class AIFactory:
 
         示例:
             >>> factory = AIFactory()
-            >>> factory.connect(
-            ...     dialogue_vendor="deepseek",
-            ...     dialogue_model_name="deepseek-chat",
-            ...     knowledge_vendor="qwen",
-            ...     knowledge_model_name="qwen-turbo"
-            ... )
+            >>> factory.connect(vendor="deepseek", model_name="deepseek-chat")
         """
-        self.switch_model(dialogue_vendor, dialogue_model_name, knowledge_vendor, knowledge_model_name)
+        self.switch_model(vendor, model_name)
 
     def disconnect(self) -> None:
         """
-        断开所有AI模型连接
+        断开AI模型连接
 
-        释放对话模型和知识模型的资源，将所有客户端设置为None。
+        释放AI模型的资源，将所有客户端设置为None。
         """
-        self.dialogue_ai = None
-        self.knowledge_ai = None
-        self.dialogue_ai_client = None
-        self.knowledge_ai_client = None
+        self.ai = None
+        self.ai_client = None
     def switch_model(
         self,
-        dialogue_vendor: Optional[str] = None,
-        dialogue_model_name: Optional[str] = None,
-        knowledge_vendor: Optional[str] = None,
-        knowledge_model_name: Optional[str] = None
+        vendor: Optional[str] = None,
+        model_name: Optional[str] = None
     ) -> None:
         """
-        切换对话模型或知识模型
-
-        可以单独切换对话模型或知识模型，也可以同时切换两者。
-        如果某个模型的参数为None，则不切换该模型。
+        切换AI模型
 
         参数:
-            dialogue_vendor: 对话模型供应商（如 "deepseek", "qwen", "kimi", "doubao"）
-            dialogue_model_name: 对话模型具体型号（如 "deepseek-chat", "qwen-turbo"）
-            knowledge_vendor: 知识模型供应商
-            knowledge_model_name: 知识模型具体型号
+            vendor: 模型供应商（如 "deepseek", "qwen", "kimi", "doubao"）
+            model_name: 模型具体型号（如 "deepseek-chat", "qwen-turbo"）
 
         异常:
             FileNotFoundError: 配置文件不存在
             ValueError: 供应商或模型配置无效
 
         示例:
-            >>> # 只切换对话模型
-            >>> factory.switch_model(
-            ...     dialogue_vendor="kimi",
-            ...     dialogue_model_name="moonshot-v1-8k"
-            ... )
-            >>> # 同时切换两个模型
-            >>> factory.switch_model(
-            ...     dialogue_vendor="deepseek",
-            ...     dialogue_model_name="deepseek-chat",
-            ...     knowledge_vendor="qwen",
-            ...     knowledge_model_name="qwen-turbo"
-            ... )
+            >>> factory.switch_model(vendor="kimi", model_name="moonshot-v1-8k")
         """
-        if dialogue_vendor and dialogue_model_name:
+        if vendor and model_name:
             # 提取模型参数
-            dialogue_ai_message = self._compose_params(self._extract_key(dialogue_vendor), self._extract_params(dialogue_vendor, dialogue_model_name))
+            ai_message = self._compose_params(self._extract_key(vendor), self._extract_params(vendor, model_name))
             # 调用模型(相对应的模型工厂函数)
-            self.dialogue_ai = self.call_model(dialogue_vendor, dialogue_ai_message)
-            
-            # 获取对话模型的角色目录路径
-            script_dir = os.path.dirname(os.path.abspath(__file__))
-            dialogue_history_path = os.path.join(script_dir, "role", "role_A")
-            
-            # 创建模型客户端
-            self.dialogue_ai_client = OPEN_AI(
-                request_params=self.dialogue_ai.gen_params(),
-                max_tokens=self.dialogue_ai.max_tokens,  # 或其他合适的值
-                get_params_callback=self.dialogue_ai.gen_request,
-                get_params_callback_stream=self.dialogue_ai.gen_params_stream,
-                token_callback=self.dialogue_ai.token_callback,
-                is_stream_end_callback=self.dialogue_ai.is_stream_end,
-                extract_stream_callback=self.dialogue_ai.extract_stream_info,
-                role_path=dialogue_history_path  # 指定对话模型专用角色目录
-            )
-            # 注：HistoryManager初始化时已自动加载assistant.json作为第一条消息
+            self.ai = self.call_model(vendor, ai_message)
 
-
-        if knowledge_vendor and knowledge_model_name:
-            # 提取模型参数
-            knowledge_ai_message = self._compose_params(self._extract_key(knowledge_vendor), self._extract_params(knowledge_vendor, knowledge_model_name))
-            # 调用模型(相对应的模型工厂函数)
-            self.knowledge_ai = self.call_model(knowledge_vendor, knowledge_ai_message)
-            
-            # 获取知识模型的角色目录路径
+            # 获取角色目录路径
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            knowledge_history_path = os.path.join(script_dir, "role", "role_B")
-            
+            role_path = os.path.join(script_dir, "role", "role")
+
             # 创建模型客户端
-            self.knowledge_ai_client = OPEN_AI(
-                request_params=self.knowledge_ai.gen_params(),
-                max_tokens=self.knowledge_ai.max_tokens,
-                get_params_callback=self.knowledge_ai.gen_request,
-                get_params_callback_stream=self.knowledge_ai.gen_params_stream,
-                token_callback=self.knowledge_ai.token_callback,
-                is_stream_end_callback=self.knowledge_ai.is_stream_end,
-                extract_stream_callback=self.knowledge_ai.extract_stream_info,
-                role_path=knowledge_history_path  # 指定知识模型专用角色目录
-            )  # 知识模型
+            self.ai_client = OPEN_AI(
+                request_params=self.ai.gen_params(),
+                max_tokens=self.ai.max_tokens,
+                get_params_callback=self.ai.gen_request,
+                get_params_callback_stream=self.ai.gen_params_stream,
+                token_callback=self.ai.token_callback,
+                is_stream_end_callback=self.ai.is_stream_end,
+                extract_stream_callback=self.ai.extract_stream_info,
+                role_path=role_path
+        )
             # 注：HistoryManager初始化时已自动加载assistant.json作为第一条消息
  
     def _extract_params(self, vendor: str, model_name: str) -> Dict[str, Any]:
@@ -317,73 +252,40 @@ class AIFactory:
         else:
             raise ValueError(f"不支持的供应商: {vendor}")
 
-    def knowledge_callback(self, problem: str, role: str = "user") -> Generator[dict, None, None]:
+    def callback(self, problem: str, role: str = "user") -> Generator[dict, None, None]:
         """
-        知识模型流式输出回调函数
+        AI模型流式输出回调函数
 
-        封装 knowledge_ai_client.send_stream，以生成器方式逐块输出内容。
+        封装 ai_client.send_stream，以生成器方式逐块输出内容。
 
         参数:
-            message: 用户输入的消息
-
-        返回:
-            生成器，逐块yield输出的内容和类型
-
-        异常:
-            RuntimeError: 知识模型客户端未连接
-
-        示例:
-            >>> for chunk in factory.knowledge_callback("查询数据"):
-            ...     print(chunk, end="", flush=True)
-        """
-        if not self.knowledge_ai_client:
-            raise RuntimeError("知识模型客户端未连接")
-        for chunk in self.knowledge_ai_client.send_stream(problem,role):
-            yield chunk
-
-    def dialogue_callback(self, problem: str, role: str = "user") -> Generator[dict, None, None]:
-        """
-        对话模型流式输出回调函数
-
-        封装 dialogue_ai_client.send_stream，以生成器方式逐块输出内容。
-
-        参数:
-            message: 用户输入的消息
+            problem: 用户输入的消息
             role: 消息角色，可选值为 "user" 或 "system"，默认为 "user"
 
         返回:
             生成器，逐块yield输出的内容和类型
 
         异常:
-            RuntimeError: 对话模型客户端未连接
+            RuntimeError: AI模型客户端未连接
 
         示例:
-            >>> for chunk in factory.dialogue_callback("你好"):
+            >>> for chunk in factory.callback("你好"):
             ...     print(chunk, end="", flush=True)
         """
-        if not self.dialogue_ai_client:
-            raise RuntimeError("对话模型客户端未连接")
-        for chunk in self.dialogue_ai_client.send_stream(problem, role):
+        if not self.ai_client:
+            raise RuntimeError("AI模型客户端未连接")
+        for chunk in self.ai_client.send_stream(problem, role):
             yield chunk
 
-    def add_tools(self, tools: list, model_type: str = "dialogue") -> None:
+    def add_tools(self, tools: list) -> None:
         """
-        为指定模型添加工具列表
-        
+        为AI模型添加工具列表
+
         参数:
             tools: 工具列表，符合OpenAI Function Calling格式
-            model_type: 模型类型，"dialogue"（对话模型）或"knowledge"（知识模型）
         异常:
-            RuntimeError: 指定的模型未连接
-            ValueError: model_type参数无效
+            RuntimeError: AI模型未连接
         """
-        if model_type == "dialogue":
-            if not self.dialogue_ai:
-                raise RuntimeError("对话模型未连接")
-            self.dialogue_ai.set_tools(tools)
-        elif model_type == "knowledge":
-            if not self.knowledge_ai:
-                raise RuntimeError("知识模型未连接")
-            self.knowledge_ai.set_tools(tools)
-        else:
-            raise ValueError(f"无效的model_type: {model_type}，必须是'dialogue'或'knowledge'")
+        if not self.ai:
+            raise RuntimeError("AI模型未连接")
+        self.ai.set_tools(tools)

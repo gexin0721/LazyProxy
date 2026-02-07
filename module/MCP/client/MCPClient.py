@@ -6,6 +6,7 @@ from mcp.client.stdio import stdio_client
 import queue
 import uuid
 import os
+import sys
 import ast
 import json
 import re
@@ -24,7 +25,7 @@ class MCPClient:
         server_path = os.path.join(parent_dir, "server", "MCPServer.py")
 
         self.server_params = StdioServerParameters(
-            command="python",
+            command=sys.executable,
             args=[server_path]
         )#服务器参数
 

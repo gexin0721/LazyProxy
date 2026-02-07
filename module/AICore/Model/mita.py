@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-# ChatGPT大模型API封装类（OpenAI）
+# Mita大模型API封装类
 import tiktoken
 from .base_model import BaseModel
 
 
-class ChatGPT(BaseModel):
+class Mita(BaseModel):
     """
-    ChatGPT大模型API封装类
+    Mita大模型API封装类
 
-    使用tiktoken进行token计算
+    使用tiktoken进行token计算（近似）
     """
 
     # ================ 配置属性 ================
@@ -24,7 +24,7 @@ class ChatGPT(BaseModel):
 
     #  ============ 计算token的回调函数 ============
     def token_callback(self, content: str) -> int:
-        """计算ChatGPT模型的token数"""
+        """计算Mita模型的token数（近似）"""
         if not content:
             return 0
         return len(self.tokenizer.encode(content))

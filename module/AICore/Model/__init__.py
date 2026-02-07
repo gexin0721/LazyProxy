@@ -5,7 +5,7 @@ AI 模型模块
 
 # 导入已实现的模型
 # from .xinhuo import Xinhuo  # 暂时封闭，等待接口统一化
-from .Kiimi import Kimi  # 注意：文件名是 Kiimi.py (两个i)
+from .Kimi import Kimi  # 注意：文件名是 Kiimi.py (两个i)
 from .deepseek import DeepSeek
 from .doubao import Doubao
 from .qwen import Qwen

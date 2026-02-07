@@ -13,7 +13,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 
-from module.AICore.Tool.HistoryManager import HistoryManager
+from Software.AI.module.AICore.Historyfile.HistoryManager import HistoryManager
 
 def test_role_parameter_validation():
     """测试角色参数验证功能"""
