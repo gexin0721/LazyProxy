@@ -67,7 +67,7 @@ class Kimi(BaseModel):
         super().__init__(message)
 
         # Kimi特有参数
-        self.tier = message.get("params").get("tier", "Free")
+        self.tier = message.get("tier", "Free")
 
         # 验证tier有效性
         if self.tier not in self.TIER_RPM_LIMITS:

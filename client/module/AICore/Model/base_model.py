@@ -14,34 +14,30 @@ from abc import ABC, abstractmethod
 
 class BaseModel(ABC):
     def __init__(self, message: dict):
-        self.api_key = message.get("key")
-        self.base_url = message.get("params").get("base_url")
-        self.model = message.get("params").get("model")
+        self.base_url = message.get("base_url")
+        self.model = message.get("model")
 
         # ================ 基础参数 ================
-        self.max_tokens = message.get("params").get("max_tokens", 32000)  # 从配置读取，默认32000
+        self.max_tokens = message.get("max_tokens", 32000)  # 从配置读取，默认32000
 
         # ================ 采样参数 ================
-        self.temperature = message.get("params").get("temperature", 1.0)  # 温度参数，范围0-2，默认1
-        self.top_p = message.get("params").get("top_p", 1.0)  # 核采样参数，范围0-1，默认1
+        self.temperature = message.get("temperature", 1.0)  # 温度参数，范围0-2，默认1
+        self.top_p = message.get("top_p", 1.0)  # 核采样参数，范围0-1，默认1
 
         # ================ 惩罚参数 ================
-        self.frequency_penalty = message.get("params").get("frequency_penalty", 0.0)  # 频率惩罚，范围-2到2，默认0
-        self.presence_penalty = message.get("params").get("presence_penalty", 0.0)  # 存在惩罚，范围-2到2，默认0
+        self.frequency_penalty = message.get("frequency_penalty", 0.0)  # 频率惩罚，范围-2到2，默认0
+        self.presence_penalty = message.get("presence_penalty", 0.0)  # 存在惩罚，范围-2到2，默认0
 
         # ================ 控制参数 ================
-        self.stop = message.get("params").get("stop", None)  # 停止词，可以是string或list（最多16个）
-        self.response_format = message.get("params").get("response_format", {"type": "text"})  # 响应格式，默认text
+        self.stop = message.get("stop", None)  # 停止词，可以是string或list（最多16个）
+        self.response_format = message.get("response_format", {"type": "text"})  # 响应格式，默认text
 
         # ================ 高级功能参数 ================
-        self.tools = message.get("params").get("tools", None)  # Function Calling工具列表
-        self.tool_choice = message.get("params").get("tool_choice", None)  # 工具选择策略
-        self.logprobs = message.get("params").get("logprobs", False)  # 是否返回log概率
-        self.top_logprobs = message.get("params").get("top_logprobs", None)  # 返回概率最高的N个token
+        self.tools = message.get("tools", None)  # Function Calling工具列表
+        self.tool_choice = message.get("tool_choice", None)  # 工具选择策略
+        self.logprobs = message.get("logprobs", False)  # 是否返回log概率
+        self.top_logprobs = message.get("top_logprobs", None)  # 返回概率最高的N个token
         
-    def set_api_key(self, api_key: str):
-        self.api_key = api_key
-
     def set_base_url(self, base_url: str):
         self.base_url = base_url
 
@@ -121,12 +117,6 @@ class BaseModel(ABC):
             raise ValueError("top_logprobs 必须在 0-20 之间")
         self.top_logprobs = top_logprobs
 
-    #  ============ 生成链接参数 ============
-    def gen_params(self):
-        return {
-            "api_key": self.api_key,
-            "base_url": self.base_url,
-        }
     #  ============ 生成请求参数 ============
     def gen_request(self, messages: list):
         """
