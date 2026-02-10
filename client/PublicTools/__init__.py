@@ -18,11 +18,13 @@
 
 from .AllEventsHandler import AllEventsHandler
 from .log import logger
+from .id_generator import generate_id
 
 # 导出所有可用的符号
 __all__ = [
     'AllEventsHandler',
     'logger',
+    'generate_id',
 ]
 
 # 版本信息
